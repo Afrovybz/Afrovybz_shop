@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AFROVYBZ — T-shirts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#000000;
+    --surface:#0d0d0d;
+    --surface-2:#161616;
+    --text:#ffffff;
+    --muted:#8f8f8f;
+    --line:rgba(255,255,255,0.12);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);color:var(--text);
+    font-family:'Inter',sans-serif;line-height:1.5;
+  }
+  a{color:inherit;text-decoration:none;}
+  img{max-width:100%;display:block;}
+  button{font-family:inherit;cursor:pointer;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px;}
+
+  .top-banner{
+    text-align:center;padding:14px 20px;
+    font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.06em;
+    color:var(--muted);border-bottom:1px solid var(--line);
+  }
+
+  header{
+    position:sticky;top:0;z-index:50;background:rgba(0,0,0,0.92);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);
+  }
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;}
+  .icon-btn{
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+    color:var(--text);opacity:0.85;
+  }
+  .icon-btn svg{width:20px;height:20px;}
+  .logo{
+    font-family:'Space Mono',monospace;font-weight:700;font-size:17px;
+    letter-spacing:0.18em;text-transform:uppercase;
+  }
+
+  .hero{padding:70px 20px 50px;text-align:center;}
+  .hero h1{
+    font-family:'Inter',sans-serif;font-weight:700;
+    font-size:clamp(40px,9vw,68px);letter-spacing:-0.02em;line-height:1;
+  }
+  .hero p{color:var(--muted);font-size:15px;margin-top:14px;max-width:380px;margin-left:auto;margin-right:auto;}
+  .hero-actions{margin-top:26px;}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:13px 24px;border-radius:999px;
+    font-weight:600;font-size:14px;border:1px solid var(--text);
+    background:var(--text);color:#000;transition:opacity .15s, transform .15s;
+  }
+  .btn:hover{opacity:0.85;}
+  .btn:active{transform:scale(0.97);}
+
+  .section-label{display:flex;align-items:baseline;gap:10px;margin:0 0 22px;padding:0 0 14px;border-bottom:1px solid var(--line);}
+  .section-label h2{font-family:'Space Mono',monospace;font-weight:700;font-size:15px;letter-spacing:0.14em;text-transform:uppercase;}
+  .section-label p{color:var(--muted);font-size:12.5px;margin-left:auto;}
+
+  .collection{padding:20px 0 70px;}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 14px;}
+  @media(min-width:720px){ .grid{grid-template-columns:repeat(4,1fr);gap:22px;} }
+
+  .card{display:flex;flex-direction:column;}
+  .card-img{
+    aspect-ratio:1/1.15;background:var(--surface);border-radius:10px;
+    overflow:hidden;position:relative;margin-bottom:12px;
+  }
+  .card-img img{width:100%;height:100%;object-fit:cover;}
+  .card-name{font-size:13.5px;font-weight:500;margin-bottom:4px;}
+  .card-price{font-family:'Space Mono',monospace;font-size:13.5px;color:var(--text);margin-bottom:10px;}
+
+  .option-group{margin-bottom:12px;}
+  .option-label{display:block;font-family:'Space Mono',monospace;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+  .chip{
+    padding:5px 10px;border-radius:6px;border:1px solid var(--line);
+    background:transparent;font-size:11.5px;font-weight:600;color:var(--muted);
+    transition:all .15s;
+  }
+  .chip.active{border-color:var(--text);color:var(--text);}
+
+  .order-link{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12.5px;font-weight:600;color:#ffffff;
+    background:#25D366;padding:8px 14px;border-radius:8px;width:fit-content;
+    transition:opacity .15s, transform .15s;
+  }
+  .order-link:hover{opacity:0.88;}
+  .order-link:active{transform:scale(0.97);}
+  .order-link svg{width:13px;height:13px;fill:currentColor;}
+
+  .empty{color:var(--muted);text-align:center;padding:60px 20px;border:1px dashed var(--line);border-radius:12px;font-size:13.5px;grid-column:1/-1;}
+
+  footer{border-top:1px solid var(--line);padding:44px 0 26px;}
+  footer .wrap{display:flex;flex-direction:column;gap:14px;align-items:center;text-align:center;}
+  footer .logo{font-size:14px;}
+  footer p{color:var(--muted);font-size:12.5px;max-width:400px;}
+  .admin-link{font-size:11.5px;color:var(--muted);border:1px solid var(--line);padding:6px 14px;border-radius:999px;}
+  .admin-link:hover{color:var(--text);border-color:var(--text);}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.85);
+    display:none;align-items:center;justify-content:center;z-index:100;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--surface);border:1px solid var(--line);border-radius:14px;
+    max-width:600px;width:100%;max-height:86vh;overflow-y:auto;padding:28px;
+  }
+  .modal h3{font-family:'Space Mono',monospace;font-size:16px;letter-spacing:0.04em;margin-bottom:6px;text-transform:uppercase;}
+  .modal .sub{color:var(--muted);font-size:12.5px;margin-bottom:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;}
+  .field input,.field textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:13.5px;
+  }
+  .field textarea{resize:vertical;min-height:64px;}
+  .close-modal{position:sticky;top:0;float:right;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;}
+  .code-out{
+    background:#000;border:1px solid var(--line);border-radius:8px;padding:12px;
+    font-family:'Space Mono',monospace;font-size:11px;white-space:pre-wrap;word-break:break-word;
+    color:#9be29b;margin-top:12px;max-height:200px;overflow-y:auto;
+  }
+  .hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.6;}
+  .hint b{color:var(--text);}
+</style>
+</head>
+<body>
+
+<script>
+const CONFIG = {
+  shopName: "AFROVYBZ",
+  bannerText: "Fresh fits, casual vibes — commande direct sur WhatsApp",
+  tagline: "Des t-shirts simples, bien coupés, sans chichi.",
+  whatsappNumber: "22870828163",
+  taillesDefaut: ["S", "M", "L", "XL"],
+  sheetId: "1QD1Dm_lJqjNCDHXeBRYZktOpd4SRj1TN1PB8zY9oe9E",
+  sheetTab: "catalogue-nova",
+};
+
+let PRODUITS = [];
+</script>
+
+<div class="top-banner" id="bannerText"></div>
+
+<header>
+  <div class="wrap">
+    <div class="logo" id="logoTop"></div>
+    <a class="icon-btn" id="heroWhatsapp" aria-label="WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.6 6.32A7.85 7.85 0 0012.05 4a7.94 7.94 0 00-6.9 11.9L4 20l4.24-1.11a7.9 7.9 0 003.8.97h0a7.94 7.94 0 007.94-7.94 7.9 7.9 0 00-2.38-5.6zm-5.55 12.2h0a6.6 6.6 0 01-3.36-.92l-.24-.14-2.5.66.67-2.44-.16-.25a6.6 6.6 0 01-1-3.5 6.6 6.6 0 016.6-6.6c1.76 0 3.42.69 4.66 1.94a6.55 6.55 0 011.93 4.67 6.6 6.6 0 01-6.6 6.58zm3.6-4.94c-.2-.1-1.17-.58-1.35-.64-.18-.07-.31-.1-.44.1-.13.2-.5.64-.62.77-.11.13-.23.15-.42.05-.2-.1-.83-.3-1.58-.97-.58-.52-.98-1.16-1.1-1.35-.11-.2-.01-.3.09-.4.09-.09.2-.23.3-.35.1-.11.13-.2.2-.32.06-.13.03-.25-.02-.35-.05-.1-.44-1.05-.6-1.44-.16-.38-.32-.33-.44-.33h-.38c-.13 0-.34.05-.52.25-.18.2-.68.66-.68 1.6 0 .95.7 1.87.8 2 .1.13 1.37 2.1 3.33 2.94.46.2.83.32 1.11.4.47.15.9.13 1.24.08.38-.06 1.17-.48 1.33-.94.17-.46.17-.86.12-.94-.05-.09-.18-.14-.38-.24z"/></svg>
+    </a>
+  </div>
+</header>
+
+<section class="hero">
+  <h1>La collection</h1>
+  <p id="taglineText"></p>
+  <div class="hero-actions">
+    <a href="#collection" class="btn">Voir les t-shirts</a>
+  </div>
+</section>
+
+<section class="collection wrap" id="collection">
+  <div class="section-label">
+    <h2>Nos produits</h2>
+    <p id="productCount"></p>
+  </div>
+  <div class="grid" id="productGrid"></div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="logo" id="logoBottom"></div>
+    <p>Choisis ta taille, clique sur commander : ça part direct dans WhatsApp, prêt à envoyer.</p>
+    <a href="#" class="admin-link" id="openAdmin" style="display:none;">Espace boutique — gérer les produits</a>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="adminModal">
+  <div class="modal">
+    <button class="close-modal" id="closeAdmin">✕</button>
+    <h3>Gérer mes produits</h3>
+    <p class="sub">La méthode la plus simple : un tableau en ligne que tu modifies comme un Excel.</p>
+    <p class="hint" style="margin-top:0;">
+      <b>1.</b> Dans ton Google Sheet, garde les colonnes <code>Nom</code>, <code>Prix</code>, <code>Image</code>, <code>Description</code>, et ajoute si besoin <code>Tailles</code> (ex: <code>S,M,L,XL</code>).<br><br>
+      <b>2.</b> Une ligne = un t-shirt.<br><br>
+      <b>3.</b> Le site relit le tableau à chaque ouverture — pas besoin de toucher au code.
+    </p>
+    <p class="sub" style="margin-top:20px;">Pas de Google Sheet ? Génère le code d'un produit à coller manuellement :</p>
+    <div class="field"><label>Nom du t-shirt</label><input type="text" id="f_nom" placeholder="Ex : Éclipse Grise"></div>
+    <div class="field"><label>Prix (FCFA)</label><input type="number" id="f_prix" placeholder="Ex : 12000"></div>
+    <div class="field"><label>Lien de l'image (URL)</label><input type="text" id="f_image" placeholder="https://..."></div>
+    <div class="field"><label>Courte description</label><textarea id="f_desc" placeholder="Ex : Coton bio, coupe regular."></textarea></div>
+    <div class="field"><label>Tailles (séparées par une virgule)</label><input type="text" id="f_tailles" placeholder="S,M,L,XL"></div>
+    <div class="modal-actions"><button class="btn" id="genCode">Générer le code</button></div>
+    <div class="code-out" id="codeOut" style="display:none;"></div>
+    <p class="hint"><b>Le plus simple, quoi qu'il arrive :</b> reviens dans cette conversation avec Claude.</p>
+  </div>
+</div>
+
+<script>
+function formatPrix(n){ return n.toLocaleString('fr-FR').replace(/,/g,' ') + ' FCFA'; }
+
+function whatsappIcon(){
+  return `<svg viewBox="0 0 24 24"><path d="M17.6 6.32A7.85 7.85 0 0012.05 4a7.94 7.94 0 00-6.9 11.9L4 20l4.24-1.11a7.9 7.9 0 003.8.97h0a7.94 7.94 0 007.94-7.94 7.9 7.9 0 00-2.38-5.6zm-5.55 12.2h0a6.6 6.6 0 01-3.36-.92l-.24-.14-2.5.66.67-2.44-.16-.25a6.6 6.6 0 01-1-3.5 6.6 6.6 0 016.6-6.6c1.76 0 3.42.69 4.66 1.94a6.55 6.55 0 011.93 4.67 6.6 6.6 0 01-6.6 6.58zm3.6-4.94c-.2-.1-1.17-.58-1.35-.64-.18-.07-.31-.1-.44.1-.13.2-.5.64-.62.77-.11.13-.23.15-.42.05-.2-.1-.83-.3-1.58-.97-.58-.52-.98-1.16-1.1-1.35-.11-.2-.01-.3.09-.4.09-.09.2-.23.3-.35.1-.11.13-.2.2-.32.06-.13.03-.25-.02-.35-.05-.1-.44-1.05-.6-1.44-.16-.38-.32-.33-.44-.33h-.38c-.13 0-.34.05-.52.25-.18.2-.68.66-.68 1.6 0 .95.7 1.87.8 2 .1.13 1.37 2.1 3.33 2.94.46.2.83.32 1.11.4.47.15.9.13 1.24.08.38-.06 1.17-.48 1.33-.94.17-.46.17-.86.12-.94-.05-.09-.18-.14-.38-.24z"/></svg>`;
+}
+
+let selections = [];
+
+function renderProducts(){
+  const grid = document.getElementById('productGrid');
+  const count = document.getElementById('productCount');
+  count.textContent = PRODUITS.length + (PRODUITS.length > 1 ? ' modèles' : ' modèle');
+
+  if(PRODUITS.length === 0){
+    grid.innerHTML = "<div class=\"empty\">Aucun produit pour le moment.</div>";
+    return;
+  }
+
+  selections = PRODUITS.map(p => (p.tailles && p.tailles[0]) || '');
+
+  grid.innerHTML = PRODUITS.map((p, i) => {
+    const tailles = (p.tailles && p.tailles.length) ? p.tailles : CONFIG.taillesDefaut;
+    return `
+    <div class="card" data-i="${i}">
+      <div class="card-img"><img src="${p.image}" alt="${p.nom}" loading="lazy"></div>
+      <div class="card-name">${p.nom}</div>
+      <div class="card-price">${formatPrix(p.prix)}</div>
+      <div class="option-group">
+        <span class="option-label">Taille</span>
+        <div class="chip-row">
+          ${tailles.map((t,ti) => `<button type="button" class="chip ${ti===0?'active':''}" onclick="selectTaille(${i},'${t}',this)">${t}</button>`).join('')}
+        </div>
+      </div>
+      <button type="button" class="order-link" onclick="commander(${i})">${whatsappIcon()} Commander</button>
+    </div>`;
+  }).join('');
+}
+
+function selectTaille(i, val, el){
+  selections[i] = val;
+  el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function commander(i){
+  const p = PRODUITS[i];
+  const taille = selections[i];
+  let texte = `Bonjour ${CONFIG.shopName} 👋, je souhaite commander le t-shirt "${p.nom}"`;
+  if(taille) texte += ` — taille ${taille}`;
+  texte += ` (${formatPrix(p.prix)}). Est-il disponible ?`;
+  const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(texte)}`;
+  window.open(url, '_blank');
+}
+
+document.getElementById('bannerText').textContent = CONFIG.bannerText;
+document.getElementById('taglineText').textContent = CONFIG.tagline;
+document.getElementById('heroWhatsapp').href = `https://wa.me/${CONFIG.whatsappNumber}`;
+document.getElementById('logoTop').textContent = CONFIG.shopName;
+document.getElementById('logoBottom').textContent = CONFIG.shopName;
+
+renderProducts();
+
+async function loadFromSheet(){
+  if(!CONFIG.sheetId) return;
+  try{
+    const url = `https://opensheet.elk.sh/${CONFIG.sheetId}/${encodeURIComponent(CONFIG.sheetTab)}`;
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('Réponse invalide du tableau');
+    const rows = await res.json();
+    const splitList = v => (v || '').split(',').map(x => x.trim()).filter(Boolean);
+    const produits = rows
+      .filter(r => (r.Nom || r.nom))
+      .map(r => ({
+        nom: r.Nom || r.nom || '',
+        prix: parseInt((r.Prix || r.prix || '0').toString().replace(/[^\d]/g,''), 10) || 0,
+        image: r.Image || r.image || '',
+        description: r.Description || r.description || '',
+        tailles: splitList(r.Tailles || r.tailles)
+      }));
+    if(produits.length){
+      PRODUITS = produits;
+      renderProducts();
+    }
+  }catch(err){
+    console.warn('Catalogue Google Sheet indisponible.', err);
+  }
+}
+loadFromSheet();
+
+if(new URLSearchParams(window.location.search).get('admin') === '1'){
+  document.getElementById('openAdmin').style.display = 'inline-block';
+}
+const adminModal = document.getElementById('adminModal');
+document.getElementById('openAdmin').addEventListener('click', e=>{ e.preventDefault(); adminModal.classList.add('open'); });
+document.getElementById('closeAdmin').addEventListener('click', ()=> adminModal.classList.remove('open'));
+adminModal.addEventListener('click', e=>{ if(e.target === adminModal) adminModal.classList.remove('open'); });
+
+document.getElementById('genCode').addEventListener('click', ()=>{
+  const nom = document.getElementById('f_nom').value.trim() || 'Nom du produit';
+  const prix = document.getElementById('f_prix').value.trim() || '0';
+  const image = document.getElementById('f_image').value.trim() || 'https://';
+  const desc = document.getElementById('f_desc').value.trim() || '';
+  const tailles = document.getElementById('f_tailles').value.trim() || 'S,M,L,XL';
+  const out = document.getElementById('codeOut');
+  out.style.display = 'block';
+  out.textContent =
+`  {
+    nom: "${nom}",
+    prix: ${prix},
+    image: "${image}",
+    description: "${desc}",
+    tailles: [${tailles.split(',').map(t=>`"${t.trim()}"`).join(', ')}]
+  },`;
+});
+</script>
+
+</body>
+</html>
