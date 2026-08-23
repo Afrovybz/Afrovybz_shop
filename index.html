@@ -125,7 +125,7 @@
 
   .empty{color:var(--muted);text-align:center;padding:60px 20px;border:1px dashed var(--line);border-radius:12px;font-size:13.5px;grid-column:1/-1;}
 
-  
+
   .cart-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.7);
     display:none;z-index:110;
@@ -216,8 +216,9 @@ const CONFIG = {
   sheetTab: "catalogue-nova",
 };
 
+
 let PRODUITS = [];
-// FIN PRODUITS
+
 </script>
 
 <header>
@@ -464,17 +465,17 @@ function fermerPanier(){ document.getElementById('cartOverlay').classList.remove
 
 function commanderPanier(){
   if(panier.length === 0) return;
-  let texte = `Bonjour ${CONFIG.shopName} 👋, je souhaite commander :\n`;
+  let texte = `Bonjour ${CONFIG.shopName} 👋,\nJe souhaite passer la commande suivante :\n`;
   panier.forEach(it => {
-    texte += `\n• ${it.quantite} x "${it.nom}"`;
+    texte += `\n• ${it.quantite} « ${it.nom} »`;
     if(it.taille) texte += ` — taille ${it.taille}`;
   });
-  const total = panier.reduce((sum, it) => sum + it.prix * it.quantite, 0);
-  texte += `\n\nTotal : ${formatPrix(total)}. Est-ce disponible ?`;
+  texte += `\nMerci.`;
   const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(texte)}`;
   window.open(url, '_blank');
 }
-  
+
+
 document.getElementById('taglineText').textContent = CONFIG.tagline;
 document.getElementById('logoTop').textContent = CONFIG.shopName;
 document.getElementById('logoBottom').textContent = CONFIG.shopName;
