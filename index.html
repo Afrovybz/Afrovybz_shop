@@ -201,7 +201,6 @@
 </head>
 <body>
 
-
 <script>
 const CONFIG = {
   shopName: "AFROVYBZ",
@@ -217,12 +216,9 @@ const CONFIG = {
   sheetTab: "catalogue-nova",
 };
 
-
 let PRODUITS = [];
-
+// FIN PRODUITS
 </script>
-
-<div class="top-banner" id="bannerText"></div>
 
 <header>
   <div class="wrap">
@@ -477,9 +473,7 @@ function commanderPanier(){
   const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(texte)}`;
   window.open(url, '_blank');
 }
-
-
-document.getElementById('bannerText').textContent = CONFIG.bannerText;
+  
 document.getElementById('taglineText').textContent = CONFIG.tagline;
 document.getElementById('logoTop').textContent = CONFIG.shopName;
 document.getElementById('logoBottom').textContent = CONFIG.shopName;
@@ -492,6 +486,7 @@ updateCartUI();
 
 renderCategoryRow();
 applyFilterAndRender();
+
 
 async function loadFromSheet(){
   if(!CONFIG.sheetId) return;
@@ -521,6 +516,7 @@ async function loadFromSheet(){
   }
 }
 loadFromSheet();
+
 
 if(new URLSearchParams(window.location.search).get('admin') === '1'){
   document.getElementById('openAdmin').style.display = 'inline-block';
