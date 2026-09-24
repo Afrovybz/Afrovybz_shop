@@ -84,12 +84,21 @@
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 14px;}
   @media(min-width:720px){ .grid{grid-template-columns:repeat(4,1fr);gap:22px;} }
 
-  .card{display:flex;flex-direction:column;}
+  .card{display:flex;flex-direction:column;transition:transform .25s ease;}
+  .card:hover{transform:translateY(-6px);}
   .card-img{
     aspect-ratio:1/1.15;background:var(--surface);border-radius:10px;
     overflow:hidden;position:relative;margin-bottom:12px;
   }
-  .card-img img{width:100%;height:100%;object-fit:cover;}
+  .card-img img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
+    transition:opacity .35s ease, transform .6s ease;
+  }
+  .card-img .img-primary{opacity:1;}
+  .card-img .img-secondary{opacity:0;}
+  .card-img:hover .img-primary{opacity:0;}
+  .card-img:hover .img-secondary{opacity:1;}
+  .card-img:hover img{transform:scale(1.045);}
   .card-name{font-size:13.5px;font-weight:500;margin-bottom:4px;}
   .card-price{font-family:'Space Mono',monospace;font-size:13.5px;color:var(--text);margin-bottom:10px;}
 
@@ -195,18 +204,6 @@
   }
   .hint{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.6;}
   .hint b{color:var(--text);}
-
-  .card-img{cursor:pointer;}
-  .card-name{cursor:pointer;}
-
-  .quickview-modal{max-width:420px;padding:20px;animation:qvIn .22s ease;}
-  @keyframes qvIn{from{opacity:0;transform:scale(.96) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
-  .qv-img{aspect-ratio:1/1.05;border-radius:12px;overflow:hidden;background:var(--surface);margin-bottom:18px;}
-  .qv-img img{width:100%;height:100%;object-fit:cover;}
-  .qv-name{font-size:21px;font-weight:700;letter-spacing:-0.01em;margin-bottom:6px;}
-  .qv-price{font-family:'Space Mono',monospace;font-size:15px;color:var(--text);margin-bottom:14px;}
-  .qv-desc{color:var(--muted);font-size:13px;line-height:1.6;margin-bottom:18px;}
-  .qv-add{width:100%;justify-content:center;margin-top:4px;padding:12px 14px;font-size:13.5px;}
 </style>
 </head>
 <body>
@@ -298,7 +295,7 @@ let PRODUITS = [];
     <p class="sub">La méthode la plus simple : un tableau en ligne que tu modifies comme un Excel.</p>
 
     <p class="hint" style="margin-top:0;">
-      <b>1.</b> Dans ton Google Sheet, garde les colonnes <code>Nom</code>, <code>Prix</code>, <code>Image</code>, <code>Description</code>, <code>Tailles</code> (ex: <code>S,M,L,XL</code>) et <code>Categorie</code> (<code>T-shirt</code>, <code>Pantalon</code>, <code>Accessoire</code> ou <code>Chaussures</code>).<br><br>
+      <b>1.</b> Dans ton Google Sheet, garde les colonnes <code>Nom</code>, <code>Prix</code>, <code>Image</code>, <code>Description</code>, <code>Tailles</code> (ex: <code>S,M,L,XL</code>) et <code>Categorie</code> (<code>T-shirt</code>, <code>Pantalon</code>, <code>Accessoire</code> ou <code>Chaussures</code>). Tu peux aussi ajouter une colonne <code>Image2</code> (optionnelle) : cette deuxième photo s'affichera automatiquement quand quelqu'un survole le produit.<br><br>
       <b>2.</b> Une ligne = un article. Pour ajouter un pantalon, un accessoire ou une paire de chaussures : ajoute une ligne avec la bonne catégorie, il apparaîtra automatiquement dans le bon onglet du site.<br><br>
       <b>3.</b> Le site relit le tableau à chaque ouverture — pas besoin de toucher au code.
     </p>
@@ -307,6 +304,7 @@ let PRODUITS = [];
     <div class="field"><label>Nom du produit</label><input type="text" id="f_nom" placeholder="Ex : Éclipse Grise"></div>
     <div class="field"><label>Prix (FCFA)</label><input type="number" id="f_prix" placeholder="Ex : 12000"></div>
     <div class="field"><label>Lien de l'image (URL)</label><input type="text" id="f_image" placeholder="https://..."></div>
+    <div class="field"><label>Lien de l'image 2 (optionnel — s'affiche au survol)</label><input type="text" id="f_image2" placeholder="https://..."></div>
     <div class="field"><label>Courte description</label><textarea id="f_desc" placeholder="Ex : Coton bio, coupe regular."></textarea></div>
     <div class="field"><label>Tailles (séparées par une virgule)</label><input type="text" id="f_tailles" placeholder="S,M,L,XL"></div>
     <div class="field"><label>Catégorie</label>
@@ -321,32 +319,6 @@ let PRODUITS = [];
     <div class="modal-actions"><button class="btn" id="genCode">Générer le code</button></div>
     <div class="code-out" id="codeOut" style="display:none;"></div>
     <p class="hint"><b>Le plus simple, quoi qu'il arrive :</b> reviens dans cette conversation avec Claude et dis-moi quels produits ajouter, changer ou retirer — je m'occupe du reste.</p>
-  </div>
-</div>
-
-<div class="modal-overlay" id="quickViewModal">
-  <div class="modal quickview-modal">
-    <button class="close-modal" id="closeQuickView">✕</button>
-    <div class="qv-img"><img id="qvImgTag" src="" alt=""></div>
-    <div class="qv-name" id="qvName"></div>
-    <div class="qv-price" id="qvPrice"></div>
-    <div class="qv-desc" id="qvDesc"></div>
-
-    <div class="option-group">
-      <span class="option-label">Taille</span>
-      <div class="chip-row" id="qvTailleRow"></div>
-    </div>
-
-    <div class="option-group">
-      <span class="option-label">Quantité</span>
-      <div class="qty-row">
-        <button type="button" class="qty-btn" id="qvQtyMinus">−</button>
-        <span class="qty-value" id="qvQtyValue">1</span>
-        <button type="button" class="qty-btn" id="qvQtyPlus">+</button>
-      </div>
-    </div>
-
-    <button type="button" class="add-link qv-add" id="qvAddBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Ajouter au panier</button>
   </div>
 </div>
 
@@ -389,7 +361,6 @@ function applyFilterAndRender(){
   PRODUITS_AFFICHES = categorieActive === 'Tous'
     ? PRODUITS
     : PRODUITS.filter(p => (p.categorie || CONFIG.categorieDefaut) === categorieActive);
-  closeQuickView();
   renderGrid();
 }
 
@@ -410,8 +381,11 @@ function renderGrid(){
     const tailles = (p.tailles && p.tailles.length) ? p.tailles : CONFIG.taillesDefaut;
     return `
     <div class="card" data-i="${i}">
-      <div class="card-img" onclick="openQuickView(${i})"><img src="${p.image}" alt="${p.nom}" loading="lazy"></div>
-      <div class="card-name" onclick="openQuickView(${i})">${p.nom}</div>
+      <div class="card-img">
+        <img class="img-primary" src="${p.image}" alt="${p.nom}" loading="lazy">
+        ${p.image2 ? `<img class="img-secondary" src="${p.image2}" alt="${p.nom}" loading="lazy">` : ''}
+      </div>
+      <div class="card-name">${p.nom}</div>
       <div class="card-price">${formatPrix(p.prix)}</div>
 
       <div class="option-group">
@@ -474,59 +448,6 @@ function retirerDuPanier(index){
   updateCartUI();
 }
 
-let qvIndex = null;
-
-function openQuickView(i){
-  qvIndex = i;
-  const p = PRODUITS_AFFICHES[i];
-  if(!p) return;
-  const tailles = (p.tailles && p.tailles.length) ? p.tailles : CONFIG.taillesDefaut;
-
-  document.getElementById('qvImgTag').src = p.image;
-  document.getElementById('qvImgTag').alt = p.nom;
-  document.getElementById('qvName').textContent = p.nom;
-  document.getElementById('qvPrice').textContent = formatPrix(p.prix);
-
-  const descEl = document.getElementById('qvDesc');
-  descEl.textContent = p.description || '';
-  descEl.style.display = p.description ? 'block' : 'none';
-
-  const tailleRow = document.getElementById('qvTailleRow');
-  tailleRow.innerHTML = tailles.map(t =>
-    `<button type="button" class="chip ${t === selections[i] ? 'active' : ''}" onclick="selectTailleQV(${i},'${t}',this)">${t}</button>`
-  ).join('');
-
-  document.getElementById('qvQtyValue').textContent = quantites[i] || 1;
-  document.getElementById('quickViewModal').classList.add('open');
-}
-
-function closeQuickView(){
-  document.getElementById('quickViewModal').classList.remove('open');
-  qvIndex = null;
-}
-
-function selectTailleQV(i, val, el){
-  selections[i] = val;
-  el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-
-  const gridCard = document.querySelector(`.card[data-i="${i}"]`);
-  if(gridCard){
-    gridCard.querySelectorAll('.chip').forEach(c => {
-      c.classList.toggle('active', c.textContent === val);
-    });
-  }
-}
-
-function changeQtyQV(delta){
-  if(qvIndex === null) return;
-  const next = Math.max(1, (quantites[qvIndex] || 1) + delta);
-  quantites[qvIndex] = next;
-  document.getElementById('qvQtyValue').textContent = next;
-  const gridQty = document.getElementById('qty-' + qvIndex);
-  if(gridQty) gridQty.textContent = next;
-}
-
 function updateCartUI(){
   const badge = document.getElementById('cartBadge');
   const itemsEl = document.getElementById('cartItems');
@@ -583,17 +504,6 @@ document.getElementById('cartOverlay').addEventListener('click', e=>{ if(e.targe
 document.getElementById('cartOrderBtn').addEventListener('click', commanderPanier);
 updateCartUI();
 
-document.getElementById('closeQuickView').addEventListener('click', closeQuickView);
-document.getElementById('quickViewModal').addEventListener('click', e=>{ if(e.target.id === 'quickViewModal') closeQuickView(); });
-document.getElementById('qvQtyMinus').addEventListener('click', ()=> changeQtyQV(-1));
-document.getElementById('qvQtyPlus').addEventListener('click', ()=> changeQtyQV(1));
-document.getElementById('qvAddBtn').addEventListener('click', ()=>{
-  if(qvIndex !== null){
-    ajouterAuPanier(qvIndex);
-    closeQuickView();
-  }
-});
-
 renderCategoryRow();
 applyFilterAndRender();
 
@@ -611,6 +521,7 @@ async function loadFromSheet(){
         nom: r.Nom || r.nom || '',
         prix: parseInt((r.Prix || r.prix || '0').toString().replace(/[^\d]/g,''), 10) || 0,
         image: r.Image || r.image || '',
+        image2: r.Image2 || r.image2 || '',
         description: r.Description || r.description || '',
         tailles: splitList(r.Tailles || r.tailles),
         categorie: (r.Categorie || r.categorie || CONFIG.categorieDefaut).trim()
@@ -638,6 +549,7 @@ document.getElementById('genCode').addEventListener('click', ()=>{
   const nom = document.getElementById('f_nom').value.trim() || 'Nom du produit';
   const prix = document.getElementById('f_prix').value.trim() || '0';
   const image = document.getElementById('f_image').value.trim() || 'https://';
+  const image2 = document.getElementById('f_image2').value.trim();
   const desc = document.getElementById('f_desc').value.trim() || '';
   const tailles = document.getElementById('f_tailles').value.trim() || 'S,M,L,XL';
   const categorie = document.getElementById('f_categorie').value;
@@ -647,7 +559,7 @@ document.getElementById('genCode').addEventListener('click', ()=>{
 `  {
     nom: "${nom}",
     prix: ${prix},
-    image: "${image}",
+    image: "${image}",${image2 ? `\n    image2: "${image2}",` : ''}
     description: "${desc}",
     tailles: [${tailles.split(',').map(t=>`"${t.trim()}"`).join(', ')}],
     categorie: "${categorie}"
