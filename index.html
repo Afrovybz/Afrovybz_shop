@@ -216,6 +216,12 @@ const CONFIG = {
 
   whatsappNumber: "22870828163",
   taillesDefaut: ["S", "M", "L", "XL"],
+  taillesParCategorie: {
+    "T-shirt": ["S", "M", "L", "XL"],
+    "Pantalon": ["S", "M", "L", "XL"],
+    "Chaussures": ["38", "39", "40", "41", "42", "43", "44", "45"],
+    "Accessoire": ["Taille unique"]
+  },
   categorieDefaut: "T-shirt",
   categories: ["T-shirt", "Pantalon", "Accessoire", "Chaussures"],
 
@@ -295,7 +301,8 @@ let PRODUITS = [];
     <p class="sub">La méthode la plus simple : un tableau en ligne que tu modifies comme un Excel.</p>
 
     <p class="hint" style="margin-top:0;">
-      <b>1.</b> Dans ton Google Sheet, garde les colonnes <code>Nom</code>, <code>Prix</code>, <code>Image</code>, <code>Description</code>, <code>Tailles</code> (ex: <code>S,M,L,XL</code>) et <code>Categorie</code> (<code>T-shirt</code>, <code>Pantalon</code>, <code>Accessoire</code> ou <code>Chaussures</code>). Tu peux aussi ajouter une colonne <code>Image2</code> (optionnelle) : cette deuxième photo s'affichera automatiquement quand quelqu'un survole le produit.<br><br>
+      <b>1.</b> Dans ton Google Sheet, garde les colonnes <code>Nom</code>, <code>Prix</code>, <code>Image</code>, <code>Description</code>, <code>Tailles</code> et <code>Categorie</code> (<code>T-shirt</code>, <code>Pantalon</code>, <code>Accessoire</code> ou <code>Chaussures</code>). Tu peux aussi ajouter une colonne <code>Image2</code> (optionnelle) : cette deuxième photo s'affichera automatiquement quand quelqu'un survole le produit.<br><br>
+      <b>Tailles :</b> si tu laisses la colonne <code>Tailles</code> vide, le site choisit automatiquement les bonnes tailles selon la catégorie : <code>S,M,L,XL</code> pour un T-shirt/Pantalon, <code>38 à 45</code> pour des Chaussures, et <code>Taille unique</code> pour un Accessoire. Tu peux toujours remplir <code>Tailles</code> toi-même (ex: <code>40,41,42,43</code>) pour écraser ce choix automatique.<br><br>
       <b>2.</b> Une ligne = un article. Pour ajouter un pantalon, un accessoire ou une paire de chaussures : ajoute une ligne avec la bonne catégorie, il apparaîtra automatiquement dans le bon onglet du site.<br><br>
       <b>3.</b> Le site relit le tableau à chaque ouverture — pas besoin de toucher au code.
     </p>
@@ -306,7 +313,7 @@ let PRODUITS = [];
     <div class="field"><label>Lien de l'image (URL)</label><input type="text" id="f_image" placeholder="https://..."></div>
     <div class="field"><label>Lien de l'image 2 (optionnel — s'affiche au survol)</label><input type="text" id="f_image2" placeholder="https://..."></div>
     <div class="field"><label>Courte description</label><textarea id="f_desc" placeholder="Ex : Coton bio, coupe regular."></textarea></div>
-    <div class="field"><label>Tailles (séparées par une virgule)</label><input type="text" id="f_tailles" placeholder="S,M,L,XL"></div>
+    <div class="field"><label>Tailles (séparées par une virgule — laisse vide pour auto selon la catégorie)</label><input type="text" id="f_tailles" placeholder="Ex : S,M,L,XL ou 40,41,42"></div>
     <div class="field"><label>Catégorie</label>
       <select id="f_categorie">
         <option value="T-shirt">T-shirt</option>
@@ -338,6 +345,12 @@ let panier = [];
 function categoriesDisponibles(){
   const set = new Set(PRODUITS.map(p => p.categorie || CONFIG.categorieDefaut));
   return CONFIG.categories.filter(c => set.has(c));
+}
+
+function taillesPourProduit(p){
+  if(p.tailles && p.tailles.length) return p.tailles;
+  const cat = p.categorie || CONFIG.categorieDefaut;
+  return CONFIG.taillesParCategorie[cat] || CONFIG.taillesDefaut;
 }
 
 function renderCategoryRow(){
@@ -374,11 +387,11 @@ function renderGrid(){
     return;
   }
 
-  selections = PRODUITS_AFFICHES.map(p => (p.tailles && p.tailles[0]) || '');
+  selections = PRODUITS_AFFICHES.map(p => taillesPourProduit(p)[0] || '');
   quantites = PRODUITS_AFFICHES.map(() => 1);
 
   grid.innerHTML = PRODUITS_AFFICHES.map((p, i) => {
-    const tailles = (p.tailles && p.tailles.length) ? p.tailles : CONFIG.taillesDefaut;
+    const tailles = taillesPourProduit(p);
     return `
     <div class="card" data-i="${i}">
       <div class="card-img">
@@ -388,12 +401,13 @@ function renderGrid(){
       <div class="card-name">${p.nom}</div>
       <div class="card-price">${formatPrix(p.prix)}</div>
 
+      ${tailles.length > 1 ? `
       <div class="option-group">
         <span class="option-label">Taille</span>
         <div class="chip-row">
           ${tailles.map((t,ti) => `<button type="button" class="chip ${ti===0?'active':''}" onclick="selectTaille(${i},'${t}',this)">${t}</button>`).join('')}
         </div>
-      </div>
+      </div>` : ''}
 
       <div class="option-group">
         <span class="option-label">Quantité</span>
@@ -551,7 +565,8 @@ document.getElementById('genCode').addEventListener('click', ()=>{
   const image = document.getElementById('f_image').value.trim() || 'https://';
   const image2 = document.getElementById('f_image2').value.trim();
   const desc = document.getElementById('f_desc').value.trim() || '';
-  const tailles = document.getElementById('f_tailles').value.trim() || 'S,M,L,XL';
+  const tailles = document.getElementById('f_tailles').value.trim();
+  const taillesArr = tailles ? tailles.split(',').map(t=>`"${t.trim()}"`).join(', ') : '';
   const categorie = document.getElementById('f_categorie').value;
   const out = document.getElementById('codeOut');
   out.style.display = 'block';
@@ -561,7 +576,7 @@ document.getElementById('genCode').addEventListener('click', ()=>{
     prix: ${prix},
     image: "${image}",${image2 ? `\n    image2: "${image2}",` : ''}
     description: "${desc}",
-    tailles: [${tailles.split(',').map(t=>`"${t.trim()}"`).join(', ')}],
+    tailles: [${taillesArr}],
     categorie: "${categorie}"
   },`;
 });
