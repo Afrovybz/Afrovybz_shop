@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AFROVYBZ — Boutique</title>
+<meta name="description" content="Fresh fits, casual vibes — commande direct sur WhatsApp. T-shirts, pantalons, chaussures et accessoires AFROVYBZ.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="AFROVYBZ — Boutique">
+<meta property="og:description" content="Fresh fits, casual vibes — commande direct sur WhatsApp.">
+<meta property="og:image" content="https://afrovybz.github.io/Afrovybz_shop/og-image.png">
+<meta property="og:url" content="https://afrovybz.github.io/Afrovybz_shop/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AFROVYBZ — Boutique">
+<meta name="twitter:description" content="Fresh fits, casual vibes — commande direct sur WhatsApp.">
+<meta name="twitter:image" content="https://afrovybz.github.io/Afrovybz_shop/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -108,13 +118,22 @@
   .card-img img{
     position:absolute;top:0;left:0;right:0;bottom:0;width:100%;height:100%;object-fit:contain;
     transition:opacity .35s ease, transform .4s ease;
-    filter:drop-shadow(0 18px 16px rgba(0,0,0,0.55));
   }
   .card-img .img-primary{opacity:1;}
   .card-img .img-secondary{opacity:0;}
   .card-img.has-second:hover .img-primary{opacity:0;}
   .card-img.has-second:hover .img-secondary{opacity:1;}
   .card-img:hover img{transform:translateY(-4px) scale(1.03);}
+  .stock-badge{
+    position:absolute;top:8px;left:8px;z-index:2;
+    background:rgba(0,0,0,0.75);color:#fff;border:1px solid var(--line);
+    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;
+    padding:4px 9px;border-radius:999px;
+  }
+  .card.out-of-stock .card-img img{opacity:0.4;}
+  .card.out-of-stock .card-name,.card.out-of-stock .card-price{opacity:0.5;}
+  .chip:disabled,.qty-btn:disabled,.add-link:disabled{opacity:0.35;cursor:not-allowed;}
+  .add-link:disabled:hover{opacity:0.35;}
   .card-name{font-size:13.5px;font-weight:500;margin-bottom:4px;}
   .card-price{font-family:'Space Mono',monospace;font-size:13.5px;color:var(--text);margin-bottom:10px;}
 
@@ -148,6 +167,12 @@
   .add-link.added{background:var(--surface-2);color:var(--text);border:1px solid var(--line);}
 
   .empty{color:var(--muted);text-align:center;padding:60px 20px;border:1px dashed var(--line);border-radius:12px;font-size:13.5px;grid-column:1/-1;}
+
+  .skeleton-card{pointer-events:none;}
+  .skeleton-block{background:var(--surface-2);border-radius:10px;}
+  .skeleton-line{height:11px;border-radius:4px;background:var(--surface-2);margin-top:8px;}
+  .skeleton-block,.skeleton-line{animation:skeletonPulse 1.3s ease-in-out infinite;}
+  @keyframes skeletonPulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
 
   .cart-overlay{
     position:fixed;inset:0;background:rgba(0,0,0,0.7);
@@ -321,6 +346,7 @@ let PRODUITS = [];
     <p class="hint" style="margin-top:0;">
       <b>1.</b> Dans ton Google Sheet, garde les colonnes <code>Nom</code>, <code>Prix</code>, <code>Image</code>, <code>Description</code>, <code>Tailles</code> et <code>Categorie</code> (<code>T-shirt</code>, <code>Pantalon</code>, <code>Accessoire</code> ou <code>Chaussures</code>). Tu peux aussi ajouter une colonne <code>Image2</code> (optionnelle) : cette deuxième photo s'affichera automatiquement quand quelqu'un survole le produit.<br><br>
       <b>Tailles :</b> si tu laisses la colonne <code>Tailles</code> vide, le site choisit automatiquement les bonnes tailles selon la catégorie : <code>S,M,L,XL</code> pour un T-shirt/Pantalon, <code>38 à 45</code> pour des Chaussures, et <code>Taille unique</code> pour un Accessoire. Tu peux toujours remplir <code>Tailles</code> toi-même (ex: <code>40,41,42,43</code>) pour écraser ce choix automatique.<br><br>
+      <b>Stock :</b> ajoute une colonne <code>Stock</code> (optionnelle) et mets <code>0</code> ou <code>rupture</code> pour un article épuisé — il s'affichera grisé avec un badge "Épuisé" et ne pourra plus être commandé. Laisse-la vide ou n'importe quelle autre valeur pour qu'il reste disponible.<br><br>
       <b>2.</b> Une ligne = un article. Pour ajouter un pantalon, un accessoire ou une paire de chaussures : ajoute une ligne avec la bonne catégorie, il apparaîtra automatiquement dans le bon onglet du site.<br><br>
       <b>3.</b> Le site relit le tableau à chaque ouverture — pas besoin de toucher au code.
     </p>
@@ -358,11 +384,26 @@ let selections = [];
 let quantites = [];
 let PRODUITS_AFFICHES = [];
 let categorieActive = "Tous";
+let chargementTermine = false;
 let panier = [];
+try{
+  const saved = localStorage.getItem('afrovybz-panier');
+  if(saved) panier = JSON.parse(saved) || [];
+}catch(e){ panier = []; }
+
+function sauvegarderPanier(){
+  try{ localStorage.setItem('afrovybz-panier', JSON.stringify(panier)); }catch(e){}
+}
 
 function categoriesDisponibles(){
   const set = new Set(PRODUITS.map(p => p.categorie || CONFIG.categorieDefaut));
   return CONFIG.categories.filter(c => set.has(c));
+}
+
+function estEpuise(valeurStock){
+  const v = (valeurStock || '').toString().trim().toLowerCase();
+  if(!v) return false;
+  return ['0','non','no','rupture','épuisé','epuise','out','false'].includes(v);
 }
 
 function taillesPourProduit(p){
@@ -401,7 +442,17 @@ function renderGrid(){
   count.textContent = PRODUITS_AFFICHES.length + (PRODUITS_AFFICHES.length > 1 ? ' modèles' : ' modèle');
 
   if(PRODUITS_AFFICHES.length === 0){
-    grid.innerHTML = "<div class=\"empty\">Aucun produit pour le moment.</div>";
+    if(!chargementTermine){
+      grid.innerHTML = Array.from({length:8}).map(() => `
+        <div class="card skeleton-card">
+          <div class="card-img skeleton-block"></div>
+          <div class="skeleton-line" style="width:70%"></div>
+          <div class="skeleton-line" style="width:40%"></div>
+        </div>`).join('');
+      count.textContent = '';
+    } else {
+      grid.innerHTML = "<div class=\"empty\">Aucun produit pour le moment.</div>";
+    }
     return;
   }
 
@@ -411,8 +462,9 @@ function renderGrid(){
   grid.innerHTML = PRODUITS_AFFICHES.map((p, i) => {
     const tailles = taillesPourProduit(p);
     return `
-    <div class="card" data-i="${i}">
+    <div class="card${p.epuise ? ' out-of-stock' : ''}" data-i="${i}">
       <div class="card-img${p.image2 ? ' has-second' : ''}">
+        ${p.epuise ? '<span class="stock-badge">Épuisé</span>' : ''}
         <img class="img-primary" src="${p.image}" alt="${p.nom}" loading="lazy">
         ${p.image2 ? `<img class="img-secondary" src="${p.image2}" alt="${p.nom}" loading="lazy">` : ''}
       </div>
@@ -423,20 +475,20 @@ function renderGrid(){
       <div class="option-group">
         <span class="option-label">Taille</span>
         <div class="chip-row">
-          ${tailles.map((t,ti) => `<button type="button" class="chip ${ti===0?'active':''}" onclick="selectTaille(${i},'${t}',this)">${t}</button>`).join('')}
+          ${tailles.map((t,ti) => `<button type="button" class="chip ${ti===0?'active':''}" onclick="selectTaille(${i},'${t}',this)" ${p.epuise?'disabled':''}>${t}</button>`).join('')}
         </div>
       </div>` : ''}
 
       <div class="option-group">
         <span class="option-label">Quantité</span>
         <div class="qty-row">
-          <button type="button" class="qty-btn" onclick="changeQty(${i},-1)">−</button>
+          <button type="button" class="qty-btn" onclick="changeQty(${i},-1)" ${p.epuise?'disabled':''}>−</button>
           <span class="qty-value" id="qty-${i}">1</span>
-          <button type="button" class="qty-btn" onclick="changeQty(${i},1)">+</button>
+          <button type="button" class="qty-btn" onclick="changeQty(${i},1)" ${p.epuise?'disabled':''}>+</button>
         </div>
       </div>
 
-      <button type="button" class="add-link" id="add-${i}" onclick="ajouterAuPanier(${i})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Ajouter</button>
+      <button type="button" class="add-link" id="add-${i}" onclick="ajouterAuPanier(${i})" ${p.epuise?'disabled':''}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> ${p.epuise ? 'Indisponible' : 'Ajouter'}</button>
     </div>`;
   }).join('');
 }
@@ -455,6 +507,7 @@ function changeQty(i, delta){
 
 function ajouterAuPanier(i){
   const p = PRODUITS_AFFICHES[i];
+  if(!p || p.epuise) return;
   const taille = selections[i];
   const qte = quantites[i] || 1;
 
@@ -481,6 +534,7 @@ function retirerDuPanier(index){
 }
 
 function updateCartUI(){
+  sauvegarderPanier();
   const badge = document.getElementById('cartBadge');
   const itemsEl = document.getElementById('cartItems');
   const totalEl = document.getElementById('cartTotal');
@@ -556,15 +610,18 @@ async function loadFromSheet(){
         image2: r.Image2 || r.image2 || r['Image 2'] || r['image 2'] || '',
         description: r.Description || r.description || '',
         tailles: splitList(r.Tailles || r.tailles),
-        categorie: (r.Categorie || r.categorie || CONFIG.categorieDefaut).trim()
+        categorie: (r.Categorie || r.categorie || CONFIG.categorieDefaut).trim(),
+        epuise: estEpuise(r.Stock || r.stock || '')
       }));
     if(produits.length){
       PRODUITS = produits;
       renderCategoryRow();
-      applyFilterAndRender();
     }
   }catch(err){
     console.warn('Catalogue Google Sheet indisponible, affichage du catalogue local.', err);
+  }finally{
+    chargementTermine = true;
+    applyFilterAndRender();
   }
 }
 loadFromSheet();
